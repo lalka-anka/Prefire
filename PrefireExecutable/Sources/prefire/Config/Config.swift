@@ -138,6 +138,7 @@ extension Config {
         }
 
         if verbose {
+            print("Oh no, smth went wrong")
             print("🟡 The '.prefire' file was not found by paths:" + possibleConfigPaths.map({ "\n  - " + $0 }).reduce("", +))
         }
 

@@ -23,8 +23,11 @@ enum ConfigPathBuilder {
             possibleConfigPaths.append(FileManager.default.currentDirectoryPath + "/\(configPath)")
 
             if !configPath.hasSuffix(configFileName) {
-                possibleConfigPaths = possibleConfigPaths.map { $0 + "/\(configFileName)" }
+                possibleConfigPaths = possibleConfigPaths.map { $0 + "/\(configFileName)" } // Дополняем путь названием файла, если его там нет
             }
+
+            let subfolderPaths = findConfigPathsRecursively(in: configPath)
+            possibleConfigPaths.append(contentsOf: subfolderPaths)
         } else {
             // Add the default path if no specific one is provided
             possibleConfigPaths.append(FileManager.default.currentDirectoryPath + "/\(configFileName)")
@@ -35,5 +38,29 @@ enum ConfigPathBuilder {
         }
 
         return possibleConfigPaths
+    }
+
+    private static func findConfigPathsRecursively(in path: String) -> [String] {
+        var resultPaths = [String]()
+
+        do {
+            let contents = try FileManager.default.contentsOfDirectory(atPath: path)
+
+            for item in contents {
+                let fullPath = (path as NSString).appendingPathComponent(item)
+                var isDirectory: ObjCBool = false
+                if FileManager.default.fileExists(atPath: fullPath, isDirectory: &isDirectory) {
+                    if isDirectory.boolValue {
+                        resultPaths.append(contentsOf: findConfigPathsRecursively(in: fullPath))
+                    } else if item == configFileName {
+                        resultPaths.append(fullPath)
+                    }
+                }
+            }
+        } catch {
+            print("Error while exploring directory: \(path)")
+        }
+
+        return resultPaths
     }
 }
